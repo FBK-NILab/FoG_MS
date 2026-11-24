@@ -1,12 +1,10 @@
-# Longitudinal lesion analysis: preprocessing, atrophy, lesions and tract disconnection
+# Longitudinal lesion analysis: preprocessing and tract disconnection
 
 Bash/Python scripts for the longitudinal analysis of T1w and FLAIR images with a manual
 lesion segmentation drawn on the FLAIR:
 
 - **preprocessing_pipeline/**: skull-stripped, lesion-filled synthetic T1/FLAIR images,
   a subject-specific template (SST) and the lesion masks of every session in MNI space;
-- **atrophy_analysis/**: parenchymal volume and intracranial volume across sessions;
-- **lesion_analysis/**: lesion registration, cumulative masks, lesion changes and volumes;
 - **tractogram_filt/**: disconnection of normative (HCP) streamlines and KUL_FWT bundles
   by the new lesions.
 
@@ -18,8 +16,6 @@ scripts/
 ├── utils.sh                  helper functions shared by all bash scripts
 ├── templates/                MNI152 1 mm templates (from FSL)
 ├── preprocessing_pipeline/   00-15, run_all.sh, lib/ (REGlib.sh, used by step 14)
-├── atrophy_analysis/         a0-a4
-├── lesion_analysis/          l1-l6
 └── tractogram_filt/          16-24, parcellizzazione_giulia/ (lesion parcellation tool)
 ```
 
@@ -92,59 +88,19 @@ Each script loops over all subjects and sessions and skips those whose inputs ar
 | 12 | Rigid registration of each session to `REF_SESSION` | `*_filled_high_res_registered2ses01.nii.gz` |
 | 13 | Multimodal subject-specific template (T1 + FLAIR) | `sub-*/SST/SST_template0.nii.gz` (T1), `SST_template1.nii.gz` (FLAIR) |
 | 14 | SST → MNI non-linear registration (`registration_brain`) | `sub-*/SST/Reg_/SST_template0_SyN*` |
-| 15 | Original lesion segmentation to MNI (single resampling) | `sub-*_ses-*_segmentation_to_MNI.nii.gz` |
-
-## atrophy_analysis
-
-| Script | Step | Output |
-|---|---|---|
-| a0 | Lesion filling of the non skull-stripped synthetic FLAIR (input for SIENA) | `flair_super_synth/*_filled_unstripped.nii.gz` |
-| a1 | Parenchymal mask from the SuperSynth FLAIR segmentation | `atrophy_analysis/*_parenchimal_mask.nii.gz` |
-| a2 | Parenchymal masks on the `REF_SESSION` grid (visual check) | `*_parenchimal_mask_registered2ses01.nii.gz` |
-| a3 | Parenchymal volume per session | `sub-*/parenchimal_volumes.csv` |
-| a4 | Intracranial volume per session, mean and median | `sub-*/ICV_volumes.csv` |
-
-## lesion_analysis
-
-| Script | Step | Output |
-|---|---|---|
-| l1 | Original lesion masks registered to `REF_SESSION` (FLIRT) | `*_FLAIR_segmentation_registered2ses01.nii.gz` |
-| l2 | Cumulative lesion mask (current + all previous sessions) | `*_FLAIR_segmentation_cumulative_sum.nii.gz` |
-| l3 | Lesion voxels lost/gained between every pair of sessions | `sub-*/lesion_differences/` |
-| l4 | Lesion volume on the `REF_SESSION` grid | `sub-*/lesion_analysis/lesion_volumes.csv` |
-| l5 | Lesion volume of the original segmentations (native space) | `sub-*/lesion_analysis/lesion_volumes_original_seg.csv` |
-| l6 | Sum of the MNI lesion masks of `LESION_SES_OLD` and `LESION_SES_NEW` | `*_segmentation_to_MNI_sum_01.nii.gz` |
 
 ## tractogram_filt
 
 | Script | Step |
 |---|---|
+| 15 | Original lesion segmentation to MNI (single resampling) | `sub-*_ses-*_segmentation_to_MNI.nii.gz` |
 | 16 (+16a) | HCP streamlines crossing the new lesion only: density maps and bundle centroids, per subject |
 | 17 (+17a) | Group mean density, fraction of subjects, group tractogram of the centroids |
 | 17b | Pruning of the group clusters (minimum number of subjects); run manually |
-| 18a / 18b | Parcellation of the largest lesion clusters into equal-size parcels |
-| 19a / 19b | Final seeds: whole clusters + parcels, renumbered |
-| 20 | % of each KUL_FWT bundle disconnected by the new lesion |
-| 21 | Screenshots of the disconnected bundles (mrview) |
-| 22b | Assignment of the group centroids to the KUL_FWT bundles (MDF distance); run manually |
-| 23 | mrview overview of the 22b results, with colour legend |
-| 24 | Voxel-wise overlap between the group disconnection map and the FWT bundle maps |
-
-## Notes
-
-- **Synthetic images.** All the processing after step 03 is performed on the synthetic
-  1 mm images produced by SuperSynth, assumed to share the world coordinates of the images
-  they were generated from; the FLAIR-to-T1 transform computed on the original images
-  (step 02) is therefore applied to the synthetic images as well (steps 05, 07, 09).
-- **Sessions with a cut T1w** (`FLAIR_SYNTH_T1_SESSIONS`). The synthetic T1 generated from
-  the FLAIR is used, so T1 and FLAIR share the FLAIR space and the identity transform is
-  used in steps 05, 07 and 09.
-- **Step 15** brings the *original* lesion segmentation to MNI space (starting point of the
-  disconnection analyses), concatenating FLAIR → T1 (02), original → synthetic T1,
-  session → SST and SST → MNI transforms.
-- **Step 14** uses `registration_brain` (preset `-s 4`: translation, rigid, affine and SyN
-  stages with ANTs) from `preprocessing_pipeline/lib/REGlib.sh` by G. Amorosino.
-- **parcellizzazione_giulia/** is the parcellation tool used by 18a/18b, included as is.
+| 18 | % of each KUL_FWT bundle disconnected by the new lesion |
+| 19 | Assignment of the group centroids to the KUL_FWT bundles (MDF distance); run manually |
+| 20 | mrview overview of the 22b results, with colour legend |
+| 21 | Voxel-wise overlap between the group disconnection map and the FWT bundle maps |
 
 ## References
 
