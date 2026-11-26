@@ -76,7 +76,7 @@ for b in "$FWT_ATLAS_DIR"/*.tck; do
         echo "  $name: map already present"
     else
         echo "  $name: computing map..."
-        tckmap -quiet -force -template "$MNI" "$b" "$tdi"
+        tckmap -quiet -force -precise -template "$MNI" "$b" "$tdi"
     fi
 
     max=$(fslstats "$tdi" -R | awk '{print $2}')

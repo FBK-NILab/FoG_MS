@@ -50,15 +50,12 @@ TRACTO_DIR="/path/to/tractography_analysis_dev"
 # KUL_FWT bundle models (.tck), in MNI space
 FWT_ATLAS_DIR="/path/to/KUL_FWT/KUL_FWT_templates/TCK_models"
 
-# Clustered lesion masks in MNI space (input of scripts 18-21)
+# Clustered lesion masks in MNI space
 CLUSTER_DIR="/path/to/lesion_diff_clustering"
 #   lesions of LESION_SES_OLD
 CLUSTERS_OLD="$CLUSTER_DIR/${TRACTO_SUBJECT}_${LESION_SES_OLD}_segmentation_to_MNI_min14_clustered_06.nii.gz"
 #   new lesions of LESION_SES_NEW (not present in LESION_SES_OLD)
 CLUSTERS_DIFF="$CLUSTER_DIR/${TRACTO_SUBJECT}_${LESION_SES_NEW}_segmentation_to_MNI_diff_min14_clustered_06.nii.gz"
-
-# Output folder of the lesion parcellation (scripts 18a/18b, read by 19a/19b)
-PARCEL_DIR="$PROJECT_DIR/tractogram_filt/parcellizzazione_giulia/outputs"
 
 # Number of subjects processed in parallel (script 16)
 N_JOBS=7
